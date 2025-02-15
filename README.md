@@ -75,7 +75,9 @@ npm start
 
 ### Authentication
 ```
+POST /api/signup/
 POST /api/auth/google-login
+POST /api/auth/
 GET  /api/auth/profile
 ```
 
@@ -100,46 +102,64 @@ DELETE /api/bookings/:id     - Cancel booking
 
 ```prisma
 model User {
-  id        String    @id @default(cuid())
+  id        Int       @id @default(autoincrement())
   email     String    @unique
   name      String
   role      UserRole
   googleId  String    @unique
   properties Property[]
   bookings  Booking[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 }
 
 model Property {
-  id            String    @id @default(cuid())
+  id            Int       @id @default(autoincrement())
   title         String
   description   String
   pricePerNight Decimal
   location      String
-  hostId        String
+  hostId        Int
   host          User      @relation(fields: [hostId], references: [id])
   bookings      Booking[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 }
 
 model Booking {
-  id         String        @id @default(cuid())
+  id         Int           @id @default(autoincrement())
   checkIn    DateTime
   checkOut   DateTime
   status     BookingStatus
-  propertyId String
-  renterId   String
+  propertyId Int
+  renterId   Int
   property   Property      @relation(fields: [propertyId], references: [id])
   renter     User         @relation(fields: [renterId], references: [id])
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+}
+
+enum UserRole {
+  RENTER
+  HOST
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELED
 }
 ```
-
 ## Project Structure
 
 ```
+prisma/
+├── migrations/         # Prisma migrations
+└── schema.prisma       # Prisma models
 src/
 ├── config/         # Configuration files
 ├── controllers/    # Request handlers
 ├── middlewares/    # Custom middlewares
-├── models/         # Prisma models
 ├── routes/         # API routes
 ├── services/       # Business logic
 ├── utils/          # Utility functions
@@ -165,16 +185,6 @@ The API uses a consistent error response format:
 4. Generate JWT token
 5. Return user data and token
 
-## Running Tests
-
-```bash
-# Run all tests
-npm test
-
-# Run specific test suite
-npm test -- --grep "Auth"
-```
-
 ## API Documentation
 
 API documentation is available at `/api-docs` when running in development mode.
@@ -190,7 +200,7 @@ API documentation is available at `/api-docs` when running in development mode.
 ## Scripts
 
 ```bash
-npm run dev     # Start development server
+npm run start:dev     # Start development server
 npm start       # Start production server
 npm test        # Run tests
 npm run lint    # Run ESLint
