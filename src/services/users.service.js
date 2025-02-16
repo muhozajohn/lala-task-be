@@ -1,93 +1,97 @@
-import { PrismaClient } from '@prisma/client';
-import bcrypt from "bcrypt";
-import { uploadToCloud } from "../utils/cloudinary";
+import bcrypt from 'bcrypt';
+import { PrismaClient , UserRole } from '@prisma/client';
+import { OAuth2Client } from 'google-auth-library';
 import generateToken from "../utils/generateToken";
 
+
 const prisma = new PrismaClient();
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
-// Create a new user
-export const createUser = async (userData, file) => {
+// Create or login user with Google OAuth
+export const createUserWithGoogle = async (googletoken) => {
   try {
-    // Check if the user already exists
-    const existing = await prisma.user.findUnique({ where: { email: userData.email } });
-    if (existing) {
-      return { success: false, message: "Email already exists" };
+    const ticket = await client.verifyIdToken({
+      idToken: googletoken,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const { email, name, sub: googleId } = ticket.getPayload();
+
+    // Check if user already exists
+    const existingUser = await prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (existingUser) {
+      // If user exists, generate a token and return the user
+      const token = generateToken(existingUser);
+      return {
+        success: true,
+        message: "User logged in successfully",
+        user: existingUser,
+        token,
+      };
     }
 
-    // Upload the file to Cloudinary if provided
-    let avatarUrl = null;
-    if (file) {
-      const result = await uploadToCloud(file);
-      avatarUrl = result?.secure_url || null;
-    }
-
-    // Hash the user's password
-    const hashedPassword = await bcrypt.hash(userData.password, 10);
-
-    // Create the user in the database
+    // Create new user
     const newUser = await prisma.user.create({
       data: {
-        username: userData.username,
-        email: userData.email,
-        fullName: userData.fullName,
-        password: hashedPassword,
-        avatar: avatarUrl || "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png",
+        email,
+        name,
+        googleId,
+        role: role || UserRole.RENTER, 
+        createdAt: new Date(),
+        updatedAt: new Date(),
       },
     });
 
-    return { success: true, message: "User created successfully", user: newUser };
-  } catch (error) {
-    console.error("Service Error:", error);
-    return { success: false, message: error.message };
-  }
-};
-
-// Login user by email
-export const loginUser = async (userData) => {
-  try {
-    const user = await prisma.user.findUnique({ where: { email: userData.email } });
-    if (!user) {
-      return { success: false, message: "User not found" };
-    }
-
-    const isMatch = await bcrypt.compare(userData.password, user.password);
-    if (!isMatch) {
-      return { success: false, message: "Invalid password" };
-    }
-
-    const token = generateToken(user.id);
+    // Generate token for the new user
+    const token = generateToken(newUser);
 
     return {
       success: true,
-      message: "Login successful",
+      message: "User created successfully",
+      user: newUser,
       token,
-      user,
     };
   } catch (error) {
     console.error("Service Error:", error);
     return { success: false, message: error.message };
   }
 };
-// Login user by username
- export const loginUserByUsername = async (userData) => {
+
+
+// Create a new user with email and password
+export const createUserWithEmail = async (userData) => {
   try {
-    const user = await prisma.user.findUnique({ where: { username: userData.username } });
-    if (!user) {
-      return { success: false, message: "User not found" };
+    // Check if user already exists
+    const existingUser = await prisma.user.findUnique({ 
+      where: { email: userData.email }
+    });
+
+    if (existingUser) {
+      return { success: false, message: "Email already exists" };
     }
 
-    const isMatch = await bcrypt.compare(userData.password, user.password);
-    if (!isMatch) {
-      return { success: false, message: "Invalid password" };
-    }
+    // Hash the password
+    const hashedPassword = await bcrypt.hash(userData.password, 10);
 
-    const token = generateToken(user.id);
+    // Create new user
+    const newUser = await prisma.user.create({
+      data: {
+        email:userData.email,
+        name:userData.name,
+        password: hashedPassword,
+        role: userData.role || UserRole.RENTER,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      },
+    });
 
-    return {
-      success: true,
-      message: "Login successful",
-      token,
-      user,
+    return { 
+      success: true, 
+      message: "User created successfully", 
+      user: newUser 
     };
   } catch (error) {
     console.error("Service Error:", error);
@@ -98,7 +102,12 @@ export const loginUser = async (userData) => {
 // Get all users
 export const getAllUsers = async () => {
   try {
-    const users = await prisma.user.findMany();
+    const users = await prisma.user.findMany({
+      include: {
+        properties: true,
+        bookings: true
+      }
+    });
     return { success: true, users };
   } catch (error) {
     console.error("Service Error:", error);
@@ -109,21 +118,28 @@ export const getAllUsers = async () => {
 // Get a single user by ID
 export const getUserById = async (userId) => {
   try {
-    // Convert userId to integer
     const id = parseInt(userId);
     
-    // Validate if conversion was successful
     if (isNaN(id)) {
       return { success: false, message: "Invalid user ID format" };
     }
-    // Fetch the user with included accounts, categories, transactions, and budgets
+
     const user = await prisma.user.findUnique({
       where: { id },
-      include: { accounts: true, categories: true, transactions: true, budgets: true },
+      include: {
+        properties: true,
+        bookings: {
+          include: {
+            property: true
+          }
+        }
+      }
     });
+
     if (!user) {
       return { success: false, message: "User not found" };
     }
+
     return { success: true, user };
   } catch (error) {
     console.error("Service Error:", error);
@@ -131,56 +147,216 @@ export const getUserById = async (userId) => {
   }
 };
 
-// Update user
-export const updateUser = async (userId, userData, file) => {
+// Update user role
+export const updateUserRole = async (userId, role) => {
   try {
-    const user = await prisma.user.findUnique({ where: { id: userId } });
+    const id = parseInt(userId);
+    
+    if (isNaN(id)) {
+      return { success: false, message: "Invalid user ID format" };
+    }
+
+    const user = await prisma.user.findUnique({ 
+      where: { id }
+    });
+
     if (!user) {
       return { success: false, message: "User not found" };
     }
 
-    // Upload the file to Cloudinary if provided
-    let avatarUrl = user.avatar;
-    if (file) {
-      const result = await uploadToCloud(file);
-      avatarUrl = result?.secure_url || avatarUrl;
+    if (!['RENTER', 'HOST'].includes(role)) {
+      return { success: false, message: "Invalid role. Must be either RENTER or HOST" };
     }
 
-    // Hash the user's new password (if provided)
-    let hashedPassword = user.password;
-    if (userData.password) {
-      hashedPassword = await bcrypt.hash(userData.password, 10);
-    }
-
-    // Update the user in the database
     const updatedUser = await prisma.user.update({
-      where: { id: userId },
+      where: { id },
       data: {
-        username: userData.username || user.username,
-        email: userData.email || user.email,
-        fullName: userData.fullName || user.fullName,
-        password: hashedPassword,
-        avatar: avatarUrl,
-      },
+        role,
+        updatedAt: new Date()
+      }
     });
 
-    return { success: true, message: "User updated successfully", user: updatedUser };
+    return { 
+      success: true, 
+      message: "User role updated successfully", 
+      user: updatedUser 
+    };
   } catch (error) {
     console.error("Service Error:", error);
     return { success: false, message: error.message };
   }
 };
 
-// Delete user
-export const deleteUser = async (userId) => {
+// Update user profile
+export const updateUserProfile = async (userId, userData) => {
   try {
-    const user = await prisma.user.findUnique({ where: { id: userId } });
+    const id = parseInt(userId);
+    
+    if (isNaN(id)) {
+      return { success: false, message: "Invalid user ID format" };
+    }
+
+    const user = await prisma.user.findUnique({ 
+      where: { id }
+    });
+
     if (!user) {
       return { success: false, message: "User not found" };
     }
 
-    await prisma.user.delete({ where: { id: userId } });
-    return { success: true, message: "User deleted successfully" };
+    const updatedUser = await prisma.user.update({
+      where: { id },
+      data: {
+        name: userData.name || user.name,
+        email: userData.email || user.email,
+        updatedAt: new Date()
+      }
+    });
+
+    return { 
+      success: true, 
+      message: "User profile updated successfully", 
+      user: updatedUser 
+    };
+  } catch (error) {
+    console.error("Service Error:", error);
+    return { success: false, message: error.message };
+  }
+};
+
+// Delete user with cascade
+export const deleteUser = async (userId) => {
+  try {
+    const id = parseInt(userId);
+    
+    if (isNaN(id)) {
+      return { success: false, message: "Invalid user ID format" };
+    }
+
+    const user = await prisma.user.findUnique({ 
+      where: { id }
+    });
+
+    if (!user) {
+      return { success: false, message: "User not found" };
+    }
+
+    // Delete user and all related data (Prisma will handle cascading)
+    await prisma.user.delete({ 
+      where: { id }
+    });
+
+    return { 
+      success: true, 
+      message: "User and all related data deleted successfully" 
+    };
+  } catch (error) {
+    console.error("Service Error:", error);
+    return { success: false, message: error.message };
+  }
+};
+
+// Get user's properties (for hosts)
+export const getUserProperties = async (userId) => {
+  try {
+    const id = parseInt(userId);
+    
+    if (isNaN(id)) {
+      return { success: false, message: "Invalid user ID format" };
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id },
+      include: {
+        properties: {
+          include: {
+            bookings: true
+          }
+        }
+      }
+    });
+
+    if (!user) {
+      return { success: false, message: "User not found" };
+    }
+
+    if (user.role !== 'HOST') {
+      return { success: false, message: "User is not a host" };
+    }
+
+    return { 
+      success: true, 
+      properties: user.properties 
+    };
+  } catch (error) {
+    console.error("Service Error:", error);
+    return { success: false, message: error.message };
+  }
+};
+
+// Get user's bookings (for renters)
+export const getUserBookings = async (userId) => {
+  try {
+    const id = parseInt(userId);
+    
+    if (isNaN(id)) {
+      return { success: false, message: "Invalid user ID format" };
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id },
+      include: {
+        bookings: {
+          include: {
+            property: true
+          }
+        }
+      }
+    });
+
+    if (!user) {
+      return { success: false, message: "User not found" };
+    }
+
+    if (user.role !== 'RENTER') {
+      return { success: false, message: "User is not a renter" };
+    }
+
+    return { 
+      success: true, 
+      bookings: user.bookings 
+    };
+  } catch (error) {
+    console.error("Service Error:", error);
+    return { success: false, message: error.message };
+  }
+};
+
+
+// Login user by email
+export const loginWithEmail = async (userData) => {
+  try {
+    const user = await prisma.user.findUnique({ 
+      where: { email: userData.email } 
+    });
+
+    if (!user) {
+      return { success: false, message: "User not found" };
+    }
+
+    const isMatch = await bcrypt.compare(userData.password, user.password);
+    if (!isMatch) {
+      return { success: false, message: "Invalid password" };
+    }
+
+    // Generate token with user data
+    const token = generateToken(user);
+
+    return {
+      success: true,
+      message: "Login successful",
+      token,
+    };
   } catch (error) {
     console.error("Service Error:", error);
     return { success: false, message: error.message };
