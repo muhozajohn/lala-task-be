@@ -22,11 +22,11 @@ app.use(cors());
 app.use("/api", routes)
 
 app.get("/", (req, res) => {
-    res.status(200).json({
-      status: "success",
-      author: "John Muhoza",
-      message: "Welcome to the Wallet Management API. Use this API to manage your transactions, budgets, and financial insights.",
-    });
+  res.status(200).json({
+    status: "success",
+    author: "John Muhoza",
+    message: "Welcome to the LaLa Rental Booking API. Use this API to manage property listings, bookings, and user accounts for a seamless rental experience.",
+  });
 });
   
 
