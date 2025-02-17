@@ -12,6 +12,9 @@ import {
   getUserBookings,
 } from '../controllers/users.controller';
 import fileUpload from '../utils/multer';
+import authMiddleware from '../middlewares/auth';
+
+
 
 const userRoute = express.Router();
 
@@ -41,9 +44,9 @@ userRoute.patch('/:id/role', updateUserRole);
 userRoute.delete('/:id', deleteUser);
 
 // Get user's properties (for hosts)
-userRoute.get('/:id/properties', getUserProperties);
+userRoute.get('/:id/properties',authMiddleware, getUserProperties);
 
 // Get user's bookings (for renters)
-userRoute.get('/:id/bookings', getUserBookings);
+userRoute.get('/:id/bookings',authMiddleware, getUserBookings);
 
 export default userRoute;

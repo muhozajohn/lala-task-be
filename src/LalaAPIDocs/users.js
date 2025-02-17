@@ -109,11 +109,6 @@ export const userPaths = {
                   password: {
                     type: "string",
                   },
-                  file: {
-                    type: "string",
-                    format: "binary",
-                    description: "User avatar image",
-                  },
                 },
               },
             },

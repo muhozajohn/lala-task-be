@@ -16,7 +16,7 @@ model User {
   name       String
   password   String?
   role       UserRole
-  googleId   String?     @unique
+  googleId   String?    @unique
   // One host can have many properties
   properties Property[]
   // One user can have many bookings
@@ -34,6 +34,13 @@ model Property {
   description   String
   pricePerNight Decimal
   location      String
+  images        String[]
+  amenities     String[]
+  houseRules    String[]
+  maxGuests     Int
+  bathrooms     Int
+  bedrooms      Int
+  // Each property belongs to one host
   hostId        Int
   // Each property belongs to one host
   host          User      @relation(fields: [hostId], references: [id])
@@ -76,5 +83,6 @@ enum UserRole {
 enum BookingStatus {
   PENDING
   CONFIRMED
-  CANCELED
+  CANCELLED
+  COMPLETED
 }

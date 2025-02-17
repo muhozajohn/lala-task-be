@@ -1,11 +1,13 @@
 import bcrypt from 'bcrypt';
-import { PrismaClient , UserRole } from '@prisma/client';
+import { PrismaClient, UserRole } from '@prisma/client';
 import { OAuth2Client } from 'google-auth-library';
 import generateToken from "../utils/generateToken";
 
-
 const prisma = new PrismaClient();
-const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+const client = new OAuth2Client({
+  clientId: process.env.GOOGLE_CLIENT_ID,
+  redirectUri: process.env.CALL_BACK_URL,
+});
 
 // Create or login user with Google OAuth
 export const createUserWithGoogle = async (googletoken) => {
@@ -39,7 +41,7 @@ export const createUserWithGoogle = async (googletoken) => {
         email,
         name,
         googleId,
-        role: role || UserRole.RENTER, 
+        role: UserRole.RENTER, 
         createdAt: new Date(),
         updatedAt: new Date(),
       },

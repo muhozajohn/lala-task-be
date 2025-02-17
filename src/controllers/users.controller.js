@@ -277,6 +277,7 @@ export const getUserBookings = async (req, res) => {
 
 
 // Create or login user with Google OAuth
+
 export const createOrLoginUserWithGoogle = async (req, res) => {
   const { token } = req.body;
 
@@ -285,13 +286,14 @@ export const createOrLoginUserWithGoogle = async (req, res) => {
   }
 
   try {
-    const userResponse = await UserService.createUserWithGoogle(token);
+    const userResponse = await  UserService.createUserWithGoogle(token);
 
     if (userResponse.success) {
       return res.status(201).json({
         status: "201",
         message: userResponse.message,
         data: userResponse.user,
+        token: userResponse.token, 
       });
     } else {
       return res.status(400).json({
