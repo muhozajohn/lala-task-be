@@ -72,32 +72,9 @@ npm start
 ```
 
 ## API Endpoints
-
-### Authentication
+```bash
+https://lala-task-be.onrender.com/api/docs/
 ```
-POST /api/signup/
-POST /api/auth/google-login
-POST /api/auth/
-GET  /api/auth/profile
-```
-
-### Properties
-```
-GET    /api/properties        - Get all properties
-GET    /api/properties/:id    - Get single property
-POST   /api/properties        - Create property (Host only)
-PUT    /api/properties/:id    - Update property (Host only)
-DELETE /api/properties/:id    - Delete property (Host only)
-```
-
-### Bookings
-```
-GET    /api/bookings         - Get user's bookings
-POST   /api/bookings         - Create booking
-PUT    /api/bookings/:id     - Update booking status
-DELETE /api/bookings/:id     - Cancel booking
-```
-
 ## Database Schema
 
 ```prisma
