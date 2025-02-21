@@ -9,7 +9,7 @@ import bookingRoute from './boooking.routes';
 const routes = express.Router();
 
 routes.use("/users",userRoute);
-routes.use("/properties",authMiddleware,propertyRoute);
+routes.use("/properties",propertyRoute);
 routes.use("/bookings",authMiddleware,bookingRoute);
 routes.use("/docs", docrouter);
 
