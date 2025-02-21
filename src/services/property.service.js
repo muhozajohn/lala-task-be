@@ -89,14 +89,9 @@ export const getPropertyById = async (propertyId) => {
     }
 
     const property = await prisma.property.findUnique({
-      where: { id },
+      where: { id:id },
       include: {
         host: true,
-        bookings: {
-          include: {
-            user: true
-          }
-        }
       }
     });
 
