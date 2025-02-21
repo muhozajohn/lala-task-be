@@ -103,17 +103,17 @@ const bookingSchema = Joi.object({
     'any.required': 'Check-out date is required.',
   }),
 
-  propertyId: Joi.number().integer().positive().required().messages({
-    'number.base': 'Property ID must be a number.',
-    'number.positive': 'Property ID must be a positive number.',
-    'any.required': 'Property ID is required.',
-  }),
+  // propertyId: Joi.number().integer().positive().required().messages({
+  //   'number.base': 'Property ID must be a number.',
+  //   'number.positive': 'Property ID must be a positive number.',
+  //   'any.required': 'Property ID is required.',
+  // }),
 
-  renterId: Joi.number().integer().positive().required().messages({
-    'number.base': 'Renter ID must be a number.',
-    'number.positive': 'Renter ID must be a positive number.',
-    'any.required': 'Renter ID is required.',
-  }),
+  // renterId: Joi.number().integer().positive().required().messages({
+  //   'number.base': 'Renter ID must be a number.',
+  //   'number.positive': 'Renter ID must be a positive number.',
+  //   'any.required': 'Renter ID is required.',
+  // }),
 
   status: Joi.string()
     .valid('PENDING', 'CONFIRMED', 'CANCELLED', 'COMPLETED')
