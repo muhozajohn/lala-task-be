@@ -1,4 +1,4 @@
-import { validateUser, validateUserLogin, validateUserUpdate, validateGoogleUser } from "../utils/validations";
+import { validateUser, validateUserLogin, validateUserUpdate } from "../utils/validations";
 import * as UserService from "../services/users.service";
 
 // Create a new user with email and password

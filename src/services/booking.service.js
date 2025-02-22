@@ -50,6 +50,9 @@ export const createBooking = async (bookingData, renterId, propertyId) => {
         status: bookingData.status || BookingStatus.PENDING,
         propertyId: id,
         renterId: renterIdInt,
+        numberOfNights: bookingData.numberOfNights, 
+        numberOfGuests: bookingData.numberOfGuests, 
+        totalPrice: bookingData.totalPrice, 
       }
     });
 

@@ -56,18 +56,21 @@ model Property {
 // - Belongs to one property (many-to-one with Property)
 // - Belongs to one renter (many-to-one with User)
 model Booking {
-  id         Int           @id @default(autoincrement())
-  checkIn    DateTime
-  checkOut   DateTime
-  status     BookingStatus
-  propertyId Int
-  renterId   Int
+  id             Int           @id @default(autoincrement())
+  checkIn        DateTime
+  checkOut       DateTime
+  status         BookingStatus
+  propertyId     Int
+  renterId       Int
+  numberOfNights Int
+  numberOfGuests Int
+  totalPrice     Float
   // Each booking is for one property
-  property   Property      @relation(fields: [propertyId], references: [id])
+  property       Property      @relation(fields: [propertyId], references: [id])
   // Each booking belongs to one renter
-  renter     User          @relation(fields: [renterId], references: [id])
-  createdAt  DateTime      @default(now())
-  updatedAt  DateTime      @updatedAt
+  renter         User          @relation(fields: [renterId], references: [id])
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
 
   @@index([propertyId])
   @@index([renterId])
