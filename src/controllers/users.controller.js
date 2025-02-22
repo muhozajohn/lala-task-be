@@ -218,7 +218,7 @@ export const deleteUser = async (req, res) => {
 
 // Get user's properties (for hosts)
 export const getUserProperties = async (req, res) => {
-  const { id } = req.params;
+  const  id  = req.user.id;
 
   try {
     const result = await UserService.getUserProperties(id);
@@ -247,7 +247,7 @@ export const getUserProperties = async (req, res) => {
 
 // Get user's bookings (for renters)
 export const getUserBookings = async (req, res) => {
-  const { id } = req.params;
+  const  id  = req.user.id;
 
   try {
     const result = await UserService.getUserBookings(id);
