@@ -44,9 +44,9 @@ userRoute.patch('/:id/role', updateUserRole);
 userRoute.delete('/:id', deleteUser);
 
 // Get user's properties (for hosts)
-userRoute.get('/:id/properties',authMiddleware, getUserProperties);
+userRoute.get('/properties',authMiddleware, getUserProperties);
 
 // Get user's bookings (for renters)
-userRoute.get('/:id/bookings',authMiddleware, getUserBookings);
+userRoute.get('/bookings',authMiddleware, getUserBookings);
 
 export default userRoute;
