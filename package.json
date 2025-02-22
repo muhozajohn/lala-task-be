@@ -4,11 +4,11 @@
   "description": "LaLa rental booking platform built with Node.js, Express, Prisma, and PostgreSQL. This service handles user authentication, property management, and booking operations.",
   "main": "index.js",
   "scripts": {
-    "start": "npm run build && node ./build/src/app.js",
-    "start:dev": "nodemon --exec babel-node ./src/app.js",
+    "start": "node init && npm run build && node ./build/src/app.js",
+    "start:dev": "node init && nodemon --exec babel-node ./src/app.js",
     "clean": "rm -rf build && mkdir build",
-    "build-babel": "npx prisma generate && babel -d ./build/src/ ./src/ -s",
-    "build": "npm run build-babel"
+    "build-babel": "node init && npx prisma generate && babel -d ./build/src/ ./src/ -s",
+    "build": "node init && npm run build-babel"
   },
   "author": "John Muhoza",
   "license": "ISC",

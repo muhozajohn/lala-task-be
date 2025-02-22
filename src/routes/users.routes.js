@@ -23,6 +23,11 @@ userRoute.post('/', fileUpload.single('file'), createUser);
 
 // Create or login user with Google OAuth
 userRoute.post('/google', createOrLoginUserWithGoogle);
+// Get user's properties (for hosts)
+userRoute.get('/properties',authMiddleware, getUserProperties);
+
+// Get user's bookings (for renters)
+userRoute.get('/bookings',authMiddleware, getUserBookings);
 
 // Login user with email and password
 userRoute.post('/auth', fileUpload.single('file'), loginUser);
@@ -43,10 +48,5 @@ userRoute.patch('/:id/role', updateUserRole);
 // Delete user
 userRoute.delete('/:id', deleteUser);
 
-// Get user's properties (for hosts)
-userRoute.get('/properties',authMiddleware, getUserProperties);
-
-// Get user's bookings (for renters)
-userRoute.get('/bookings',authMiddleware, getUserBookings);
 
 export default userRoute;
