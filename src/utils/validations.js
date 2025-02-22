@@ -89,7 +89,6 @@ export const validatePropertyUpdate = (propertyData) => {
 
 
 
-// Schema for booking creation
 const bookingSchema = Joi.object({
   checkIn: Joi.date().iso().greater('now').required().messages({
     'date.base': 'Check-in must be a valid date.',
@@ -103,18 +102,6 @@ const bookingSchema = Joi.object({
     'any.required': 'Check-out date is required.',
   }),
 
-  // propertyId: Joi.number().integer().positive().required().messages({
-  //   'number.base': 'Property ID must be a number.',
-  //   'number.positive': 'Property ID must be a positive number.',
-  //   'any.required': 'Property ID is required.',
-  // }),
-
-  // renterId: Joi.number().integer().positive().required().messages({
-  //   'number.base': 'Renter ID must be a number.',
-  //   'number.positive': 'Renter ID must be a positive number.',
-  //   'any.required': 'Renter ID is required.',
-  // }),
-
   status: Joi.string()
     .valid('PENDING', 'CONFIRMED', 'CANCELLED', 'COMPLETED')
     .required()
@@ -122,6 +109,26 @@ const bookingSchema = Joi.object({
       'any.only': 'Status must be one of PENDING, CONFIRMED, CANCELLED, or COMPLETED.',
       'any.required': 'Booking status is required.',
     }),
+
+  numberOfNights: Joi.number().integer().min(1).required().messages({
+    'number.base': 'Number of nights must be a valid number.',
+    'number.integer': 'Number of nights must be an integer.',
+    'number.min': 'Number of nights must be at least 1.',
+    'any.required': 'Number of nights is required.',
+  }),
+
+  numberOfGuests: Joi.number().integer().min(1).required().messages({
+    'number.base': 'Number of guests must be a valid number.',
+    'number.integer': 'Number of guests must be an integer.',
+    'number.min': 'Number of guests must be at least 1.',
+    'any.required': 'Number of guests is required.',
+  }),
+
+  totalPrice: Joi.number().positive().required().messages({
+    'number.base': 'Total price must be a valid number.',
+    'number.positive': 'Total price must be a positive number.',
+    'any.required': 'Total price is required.',
+  }),
 });
 
 // Function to validate booking data

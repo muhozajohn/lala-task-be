@@ -2,7 +2,7 @@
 CREATE TYPE "UserRole" AS ENUM ('RENTER', 'HOST');
 
 -- CreateEnum
-CREATE TYPE "BookingStatus" AS ENUM ('PENDING', 'CONFIRMED', 'CANCELED');
+CREATE TYPE "BookingStatus" AS ENUM ('PENDING', 'CONFIRMED', 'CANCELLED', 'COMPLETED');
 
 -- CreateTable
 CREATE TABLE "User" (
@@ -46,6 +46,9 @@ CREATE TABLE "Booking" (
     "status" "BookingStatus" NOT NULL,
     "propertyId" INTEGER NOT NULL,
     "renterId" INTEGER NOT NULL,
+    "numberOfNights" INTEGER NOT NULL,
+    "numberOfGuests" INTEGER NOT NULL,
+    "totalPrice" DOUBLE PRECISION NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
