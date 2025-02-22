@@ -263,10 +263,7 @@ export const getUserProperties = async (userId) => {
   try {
     const id = parseInt(userId);
     
-    if (isNaN(id)) {
-      return { success: false, message: "Invalid user ID format" };
-    }
-
+ 
     const user = await prisma.user.findUnique({
       where: { id },
       include: {
@@ -301,10 +298,6 @@ export const getUserBookings = async (userId) => {
   try {
     const id = parseInt(userId);
     
-    if (isNaN(id)) {
-      return { success: false, message: "Invalid user ID format" };
-    }
-
     const user = await prisma.user.findUnique({
       where: { id },
       include: {
